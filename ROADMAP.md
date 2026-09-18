@@ -311,54 +311,159 @@ AdSense 1.0 should avoid persistent files unless they are genuinely necessary.
 
 ---
 
-## 1.1 — Placement rules and legacy audit
+## 1.1 — Placement rules, content sources and legacy migration
 
 ### Content-aware placement rules
 
 AdSense should consume available content context; it must not become coupled to another plugin's private schema.
 
-- [ ] Target placements by Geeklog content type when the current context can be identified safely.
+The placement engine must work on **rendered content context**, not only on stories/static pages. New content should not need AdSense autotags stored in its database text unless an editor explicitly chooses to use them.
+
+- [ ] Add automatic render-time placement rules that can work without writing markers into stored content.
+- [ ] Target placements by Geeklog/content type when the current context can be identified safely.
 - [ ] Target placements by topic using Geeklog-provided/current content context where available.
 - [ ] Add minimum content-length conditions.
-- [ ] Add article insertion positions such as:
+- [ ] Add insertion positions such as:
   - [ ] after introduction;
   - [ ] after paragraph N;
   - [ ] proportional position in long content;
-  - [ ] before/after article body;
-  - [ ] before comments.
-- [ ] Evaluate `plugin_templatesetvars_adsense()` or other native rendering hooks before introducing custom theme modifications.
-- [ ] Keep rendering compatible with both Geeklog 2.1.1 and 2.2.2.
-- [ ] Define minimum spacing between automatically inserted manual placements.
-- [ ] Avoid insertion inside protected structures such as tables, code blocks, forms, figures, and embedded media.
+  - [ ] before/after main body;
+  - [ ] before comments or equivalent discussion area.
+- [ ] Support more than one automatic placement only when spacing rules allow it.
+- [ ] Define minimum spacing between automatically inserted placements.
+- [ ] Avoid insertion inside protected structures such as tables, code blocks, forms, figures, blockquotes requiring integrity, and embedded media.
 - [ ] Provide a documented no-ad marker/class or equivalent integration contract.
+- [ ] Detect explicit/manual AdSense markers and avoid duplicate automatic placement.
+- [ ] Add an option to disable all automatic insertion when compatible AdSense autotags already exist in the current content.
+- [ ] Evaluate `plugin_templatesetvars_adsense()`, content-provider hooks, and other native rendering hooks before introducing theme modifications.
+- [ ] Keep rendering compatible with both Geeklog 2.1.1 and 2.2.2.
 - [ ] Treat unavailable provider context as "placement rule cannot be evaluated", not as a fatal error.
+
+### Generic content-source contract
+
+Historical autotags may exist in **any text-bearing Geeklog content**, including core content and plugin-owned content.
+
+The audit/migration layer must therefore use a provider model instead of hard-coded assumptions about only `stories` and `staticpages`.
+
+Core sources to support explicitly:
+
+- [ ] stories/articles;
+- [ ] static pages;
+- [ ] Geeklog blocks;
+- [ ] forum posts/messages where Forum is installed and exposes a compatible source;
+- [ ] comments where safely supported;
+- [ ] other core text-bearing content identified during implementation.
+
+Plugin/provider sources to support through capability detection:
+
+- [ ] Documents content/body/description fields;
+- [ ] MediaGallery album/media descriptions where applicable;
+- [ ] Videos titles/descriptions/body fields where applicable;
+- [ ] Maps descriptions/content fields where applicable;
+- [ ] Calendar/event descriptions where applicable;
+- [ ] Links descriptions where applicable;
+- [ ] custom plugin content that exposes a compatible audit/migration provider;
+- [ ] future providers without requiring AdSense code changes.
+
+Provider requirements:
+
+- [ ] Define a small AdSense legacy-content provider contract/callback for plugins that need audit/migration support.
+- [ ] A provider must expose stable content identity (`type + id`) and one or more named text fields.
+- [ ] A provider must expose read operations independently from write operations.
+- [ ] A provider must explicitly declare whether a field is writable by migration.
+- [ ] A provider must provide its own save/update callback for modifications; AdSense must not update another plugin's tables directly.
+- [ ] AdSense must never infer writable fields from another plugin's schema.
+- [ ] Missing provider support means "not auditable/migratable through AdSense", not permission to query private tables.
+- [ ] Provider failures must be isolated so one broken plugin cannot abort the entire site audit.
+- [ ] Scans must remain active-site scoped in multisite installations.
+- [ ] Provider capability discovery must be cached only for the current request/site context.
 
 ### Legacy autotag audit
 
-- [ ] Add a read-only scanner for known historical autotags.
-- [ ] Keep scans administrator-triggered rather than running them on ordinary requests.
-- [ ] Count occurrences by content source where feasible.
-- [ ] Identify current provider/owner when determinable.
-- [ ] Classify tags as:
+Historical tags to recognize include at minimum compatible forms such as:
+
+```text
+[adsense:1]
+[leaderboard:1]
+[inarticle:1]
+[infeed:1]
+```
+
+The parameter after `:` is historical syntax and may have no semantic meaning for AdSense. Migration logic must preserve the original source until an administrator explicitly chooses otherwise.
+
+- [ ] Add an administrator-triggered read-only scanner for known historical AdSense-compatible autotags.
+- [ ] Scan all registered core and plugin content providers, not only stories and static pages.
+- [ ] Never run a full content scan during normal frontend requests, plugin install, or ordinary upgrade.
+- [ ] Count occurrences by:
+  - [ ] provider/plugin;
+  - [ ] content type;
+  - [ ] field name;
+  - [ ] autotag name;
+  - [ ] affected content item.
+- [ ] Record stable `type + id` references rather than relying only on database row positions.
+- [ ] Identify the current autotag owner/provider when determinable.
+- [ ] Classify matches as:
   - [ ] AdSense-compatible;
   - [ ] external;
   - [ ] unresolved/conflicting.
-- [ ] Allow an administrator to create explicit aliases from compatible legacy tags to named placements.
+- [ ] Treat historical parameters such as `:1` as syntax to preserve/ignore unless a provider/site-specific migration rule explicitly assigns meaning to them.
+- [ ] Show representative excerpts around matches without exposing unrelated private content unnecessarily.
+- [ ] Allow an administrator to filter the audit by provider/content type/tag.
+- [ ] Allow an administrator to create explicit aliases from compatible historical tags to named placements.
 - [ ] Protect mapping changes with ACL and CSRF token checks.
-- [ ] Provide a preview before any future content migration.
-- [ ] Keep runtime aliasing as the preferred compatibility strategy.
+- [ ] Keep runtime aliasing as the default non-destructive compatibility strategy.
 
-### Optional migration utility
+### Existing-content strategy
 
-- [ ] Evaluate whether a content migration utility is actually necessary.
-- [ ] If implemented, require explicit administrator action.
-- [ ] Provide dry-run/preview.
-- [ ] Provide counts and affected content IDs.
-- [ ] Preserve legacy source data until conversion is verified.
+Provide a clear site-level strategy for historical AdSense-compatible autotags:
+
+- [ ] **Preserve and interpret** — leave stored content unchanged and render historical tags through their current owner or the AdSense compatibility layer.
+- [ ] **Ignore for AdSense** — leave stored content unchanged but do not let AdSense claim/render historical aliases.
+- [ ] **Migrate/remove explicitly** — remove compatible historical tags only through an administrator-triggered migration after preview.
+
+Rules:
+
+- [ ] Installation and upgrade must default to non-destructive preservation.
+- [ ] Uninstall must never strip tags from stored content.
+- [ ] Disabling AdSense must not rewrite stored content.
+- [ ] Switching automatic placement rules must not rewrite stored content.
+- [ ] New automatic placements should be injected at render time and should not add `[ad:...]` markers to the database automatically.
+- [ ] Explicit editor-authored `[ad:PLACEMENT]` remains supported as an intentional manual override.
+
+### Optional migration/removal utility
+
+The migration utility is for administrators who intentionally want to remove obsolete AdSense-compatible autotags from stored content after render-time placement rules are configured.
+
+- [ ] Require explicit administrator action.
+- [ ] Require a fresh read-only audit before a destructive migration.
+- [ ] Provide dry-run/preview with counts and affected `type + id + field`.
+- [ ] Allow selection by provider/content type rather than an all-or-nothing site operation.
+- [ ] Allow selection by autotag name.
+- [ ] Show before/after excerpts for representative or individually selected items.
+- [ ] Remove only AdSense-compatible historical tags explicitly selected by the administrator.
+- [ ] Never convert/remove `[amazon]` or `[youtube]` as part of AdSense migration.
+- [ ] Preserve surrounding whitespace/markup as safely as possible when removing a tag.
+- [ ] Do not insert new `[ad:...]` tags merely to replace removed historical tags when automatic render-time placement is the chosen strategy.
+- [ ] Use provider-owned write callbacks for plugin content.
+- [ ] Refuse modification when a provider is read-only or does not expose a supported write path.
 - [ ] Make migration repeatable/restartable where practical.
-- [ ] Back up or otherwise support safe rollback according to Geeklog conventions.
-- [ ] Never convert `[amazon]` or `[youtube]` into AdSense tags.
+- [ ] Record migration progress/results site-locally for restart/diagnostics if persistence is required.
+- [ ] Back up or otherwise support safe rollback according to Geeklog/provider conventions before destructive changes.
 - [ ] Never migrate another site's content in multisite mode.
+- [ ] Keep batch sizes bounded to avoid timeouts on large sites.
+- [ ] Provide resumable batches for large installations.
+- [ ] Log failures per content item/provider without aborting unrelated providers.
+
+### Runtime duplication rules during transition
+
+During coexistence with the historical Autotags plugin:
+
+- [ ] If Autotags currently owns `adsense`, `leaderboard`, `inarticle`, or `infeed`, AdSense must not register the same autotag name.
+- [ ] Historical content continues to render through Autotags until ownership is intentionally transferred.
+- [ ] AdSense native `[ad:PLACEMENT]` remains available for new/manual use.
+- [ ] Automatic render-time placement must detect historical/manual ad markers and avoid duplicate ads according to configured policy.
+- [ ] Once the historical provider is disabled, AdSense may claim configured compatible aliases without requiring stored-content rewrites.
+- [ ] Legacy parameters such as `:1` must be accepted and ignored when they carry no configured semantic meaning.
 
 ---
 
