@@ -58,11 +58,31 @@ The planned migration model is deliberately non-destructive:
 - administrators can run a read-only site audit across registered content providers;
 - destructive tag removal, if used, requires an explicit previewed administrator action;
 - new automatic ad placement should happen at render time and should not write AdSense markers into newly created content automatically;
-- plugin-owned content must be audited or modified through provider callbacks/capabilities rather than direct AdSense queries against another plugin's private tables;
+- plugin-owned content must be audited or modified through shared Geeklog/provider capabilities rather than direct AdSense queries against another plugin's private tables;
+- AdSense follows the same provider-neutral discovery principle as Agent: prefer `PLG_getItemInfo()`, bounded `PLG_invokeService()` capabilities, or documented versioned plugin contracts;
+- AdSense does not depend on Agent being installed: Agent and AdSense independently consume the same owning-plugin contracts;
 - `[amazon]` and `[youtube]` remain outside AdSense migration;
 - legacy parameters such as `:1` can be accepted as historical syntax and ignored when they have no configured meaning.
 
 This allows a site to keep old content untouched while gradually moving new rendering to the AdSense plugin.
+
+### Relationship with Agent
+
+Agent is a reference consumer of Geeklog plugin capabilities, not a required dependency of AdSense.
+
+The intended architecture is:
+
+```text
+Content/plugin owner
+        ↓
+shared Geeklog contract / capability
+        ↓
+   ┌────┴────┐
+   ↓         ↓
+ Agent     AdSense
+```
+
+Both consumers should feature-detect what an owning plugin actually exposes. AdSense should never call Agent merely to access Forum, Documents, MediaGallery, Videos, Maps or another plugin, and should never fall back to that plugin's private SQL merely because Agent is absent.
 
 ## Advertising modes
 
