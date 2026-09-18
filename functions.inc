@@ -337,6 +337,53 @@ function ADSENSE_renderPlacement($placement)
         . '<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>';
 }
 
+function ADSENSE_adsTxtStatus()
+{
+    global $_CONF;
+
+    $publisherId = trim((string) ADSENSE_config('publisher_id', ''));
+    $sellerId = '';
+
+    if (ADSENSE_isPublisherId($publisherId)) {
+        $sellerId = substr($publisherId, 3);
+    }
+
+    $path = rtrim($_CONF['path_html'], "/\\") . DIRECTORY_SEPARATOR . 'ads.txt';
+    $url = rtrim($_CONF['site_url'], '/') . '/ads.txt';
+    $expected = $sellerId !== ''
+        ? 'google.com, ' . $sellerId . ', DIRECT, f08c47fec0942fa0'
+        : '';
+
+    $status = array(
+        'path' => $path,
+        'url' => $url,
+        'publisher_valid' => ($sellerId !== ''),
+        'expected_line' => $expected,
+        'exists' => is_file($path),
+        'readable' => false,
+        'publisher_found' => false
+    );
+
+    if (!$status['exists'] || !is_readable($path)) {
+        return $status;
+    }
+
+    $status['readable'] = true;
+    $contents = file_get_contents($path);
+
+    if ($contents === false || $sellerId === '') {
+        return $status;
+    }
+
+    $pattern = '/^\\s*google\\.com\\s*,\\s*'
+        . preg_quote($sellerId, '/')
+        . '\\s*,\\s*DIRECT\\s*,\\s*f08c47fec0942fa0\\s*$/im';
+
+    $status['publisher_found'] = preg_match($pattern, $contents) === 1;
+
+    return $status;
+}
+
 function ADSENSE_tagList($value)
 {
     if (is_array($value)) {
