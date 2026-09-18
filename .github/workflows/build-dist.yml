@@ -1,0 +1,145 @@
+name: Build distributable archive
+
+on:
+  push:
+    branches:
+      - develop-1.0
+    paths-ignore:
+      - 'dist/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-dist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read plugin metadata
+        id: metadata
+        shell: bash
+        run: |
+          VERSION="$(php -r 'include "autoinstall.php"; if (function_exists("plugin_autoinstall_adsense")) { $i = plugin_autoinstall_adsense("adsense"); echo isset($i["info"]["pi_version"]) ? $i["info"]["pi_version"] : ""; }' 2>/dev/null)"
+          GL_VERSION="$(php -r 'include "autoinstall.php"; if (function_exists("plugin_autoinstall_adsense")) { $i = plugin_autoinstall_adsense("adsense"); echo isset($i["info"]["pi_gl_version"]) ? $i["info"]["pi_gl_version"] : ""; }' 2>/dev/null)"
+
+          if [ -z "$VERSION" ]; then
+            echo "Unable to read pi_version from autoinstall.php" >&2
+            exit 1
+          fi
+
+          if [ -z "$GL_VERSION" ]; then
+            echo "Unable to read pi_gl_version from autoinstall.php" >&2
+            exit 1
+          fi
+
+          ARCHIVE="adsense_${VERSION}_${GL_VERSION}.zip"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "gl_version=$GL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+
+      - name: Validate plugin manifest
+        shell: bash
+        run: |
+          php -r '
+          $m = json_decode(file_get_contents("plugin.json"), true);
+          if (!is_array($m)
+              || (int) ($m["schema"] ?? 0) !== 1
+              || ($m["id"] ?? "") !== "adsense"
+              || ($m["requires"]["geeklog"] ?? "") !== "2.1.1"
+              || ($m["requires"]["php"] ?? "") !== "5.6.0") {
+              fwrite(STDERR, "Invalid plugin.json\n");
+              exit(1);
+          }
+          '
+
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          find .             -type f             -name '*.php'             -not -path './dist/*'             -not -path './build/*'             -print0           | xargs -0 -n1 php -l
+
+      - name: Build installable ZIP
+        shell: bash
+        run: |
+          ARCHIVE="${{ steps.metadata.outputs.archive }}"
+
+          rm -rf build
+          mkdir -p build/adsense dist
+
+          rsync -a ./ build/adsense/             --exclude='.git/'             --exclude='.github/'             --exclude='dist/'             --exclude='build/'             --exclude='.*'
+
+          rm -f "dist/$ARCHIVE"
+
+          (
+            cd build
+            zip -r -q "../dist/$ARCHIVE" adsense
+          )
+
+          echo "Created dist/$ARCHIVE"
+          unzip -l "dist/$ARCHIVE"
+
+      - name: Reject hidden files in archive
+        shell: bash
+        run: |
+          ARCHIVE="dist/${{ steps.metadata.outputs.archive }}"
+
+          if unzip -Z1 "$ARCHIVE" | awk -F/ '
+            {
+              for (i = 1; i <= NF; i++) {
+                if ($i ~ /^\./) {
+                  print "Hidden archive entry: " $0 > "/dev/stderr";
+                  found = 1;
+                }
+              }
+            }
+            END { exit found ? 1 : 0 }
+          '; then
+            echo "Archive contains no hidden files or directories."
+          else
+            exit 1
+          fi
+
+      - name: Validate installable root
+        shell: bash
+        run: |
+          ARCHIVE="dist/${{ steps.metadata.outputs.archive }}"
+
+          unzip -Z1 "$ARCHIVE" | grep -qx 'adsense/autoinstall.php'
+          unzip -Z1 "$ARCHIVE" | grep -qx 'adsense/functions.inc'
+          unzip -Z1 "$ARCHIVE" | grep -qx 'adsense/install_defaults.php'
+          unzip -Z1 "$ARCHIVE" | grep -qx 'adsense/plugin.json'
+          unzip -Z1 "$ARCHIVE" | grep -qx 'adsense/language/english.php'
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adsense-${{ steps.metadata.outputs.version }}-geeklog-${{ steps.metadata.outputs.gl_version }}
+          path: dist/${{ steps.metadata.outputs.archive }}
+          if-no-files-found: error
+
+      - name: Commit updated archive
+        shell: bash
+        run: |
+          ARCHIVE="${{ steps.metadata.outputs.archive }}"
+          VERSION="${{ steps.metadata.outputs.version }}"
+          GL_VERSION="${{ steps.metadata.outputs.gl_version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          find dist -maxdepth 1 -type f -name 'adsense_*.zip' ! -name "$ARCHIVE" -delete
+          git add -A dist
+
+          if git diff --cached --quiet; then
+            echo "Archive unchanged; nothing to commit."
+            exit 0
+          fi
+
+          git commit -m "Build AdSense ${VERSION} for Geeklog ${GL_VERSION} distributable [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
