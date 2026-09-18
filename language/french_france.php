@@ -40,6 +40,15 @@ $LANG_ADSENSE = array(
     'alias_unavailable' => 'Indisponible',
     'external_unchanged' => 'Externe — jamais repris par AdSense',
     'usage_title' => 'Utilisation',
+    'tooltip_enabled' => 'Interrupteur général de toute diffusion AdSense générée par ce plugin.',
+    'tooltip_serving_mode' => 'Désactivé coupe toute diffusion. Annonces automatiques charge uniquement le script Google. Manuel affiche les emplacements nommés. Hybride combine les deux.',
+    'tooltip_publisher_id' => 'Identifiant éditeur Google AdSense au format ca-pub-1234567890123456.',
+    'tooltip_debug_mode' => 'Pour les administrateurs AdSense, remplace les annonces manuelles par des repères afin de contrôler les emplacements sans afficher de publicité réelle.',
+    'tooltip_legacy_aliases' => 'Expose les noms d’autotags historiques compatibles uniquement si aucun autre plugin actif ne les possède déjà.',
+    'tooltip_legacy_adsense_placement' => 'Emplacement nommé utilisé pour l’ancien alias adsense lorsqu’il est disponible.',
+    'tooltip_legacy_inarticle_placement' => 'Emplacement nommé utilisé pour l’ancien alias inarticle lorsqu’il est disponible.',
+    'tooltip_legacy_infeed_placement' => 'Emplacement nommé utilisé pour l’ancien alias infeed lorsqu’il est disponible.',
+    'tooltip_legacy_leaderboard_placement' => 'Emplacement nommé utilisé pour l’ancien alias leaderboard lorsqu’il est disponible.',
     'usage_help' => 'Exemple : créez un emplacement article-middle, puis utilisez [ad:article-middle] dans un contenu Geeklog compatible.'
 );
 
