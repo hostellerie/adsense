@@ -6,7 +6,18 @@ if (!defined('GVERSION')) {
     die('This file can not be used on its own.');
 }
 
-global $_ADSENSE_CONF;
+global $_CONF, $_TABLES, $_DB_table_prefix, $_ADSENSE_CONF, $LANG_ADSENSE;
+
+$adsensePluginPath = $_CONF['path'] . 'plugins/adsense/';
+
+$langFile = $adsensePluginPath . 'language/' . $_CONF['language'] . '.php';
+if (file_exists($langFile)) {
+    require_once $langFile;
+} else {
+    require_once $adsensePluginPath . 'language/english.php';
+}
+
+$_TABLES['adsense_placements'] = $_DB_table_prefix . 'adsense_placements';
 
 $_ADSENSE_CONF = array();
 
@@ -31,25 +42,47 @@ function ADSENSE_mode()
     $mode = strtolower(trim((string) ADSENSE_config('serving_mode', 'disabled')));
     $allowed = array('disabled', 'auto', 'manual', 'hybrid');
 
-    if (!in_array($mode, $allowed, true)) {
-        return 'disabled';
-    }
-
-    return $mode;
+    return in_array($mode, $allowed, true) ? $mode : 'disabled';
 }
 
 function ADSENSE_isPublisherId($publisherId)
 {
-    return preg_match('/^ca-pub-[0-9]{10,30}$/', trim((string) $publisherId)) === 1;
+    return preg_match('/^ca-pub-[0-9]{10,30}$/D', trim((string) $publisherId)) === 1;
+}
+
+function ADSENSE_isSlotId($slotId)
+{
+    return preg_match('/^[0-9]{5,30}$/D', trim((string) $slotId)) === 1;
+}
+
+function ADSENSE_normalizePlacementName($name)
+{
+    $name = strtolower(trim((string) $name));
+    $name = preg_replace('/[^a-z0-9_-]+/', '-', $name);
+    $name = trim($name, '-_');
+
+    if (strlen($name) > 64) {
+        $name = substr($name, 0, 64);
+    }
+
+    return $name;
+}
+
+function ADSENSE_allowedFormats()
+{
+    return array('auto', 'rectangle', 'horizontal', 'vertical');
+}
+
+function ADSENSE_normalizeFormat($format)
+{
+    $format = strtolower(trim((string) $format));
+
+    return in_array($format, ADSENSE_allowedFormats(), true) ? $format : 'auto';
 }
 
 function ADSENSE_isAdminRequest()
 {
     global $_CONF;
-
-    if (defined('SECURITY_ADMIN') || defined('ADMIN_MENU')) {
-        return true;
-    }
 
     $request = '';
     if (isset($_SERVER['SCRIPT_NAME'])) {
@@ -73,17 +106,20 @@ function ADSENSE_isAdminRequest()
     return strpos($request, rtrim($adminPath, '/') . '/') !== false;
 }
 
+function ADSENSE_isDebugPreview()
+{
+    return (int) ADSENSE_config('debug_mode', 0) === 1
+        && function_exists('SEC_hasRights')
+        && SEC_hasRights('adsense.admin');
+}
+
 function ADSENSE_canServe()
 {
     if ((int) ADSENSE_config('enabled', 0) !== 1) {
         return false;
     }
 
-    if (ADSENSE_mode() === 'disabled') {
-        return false;
-    }
-
-    if (ADSENSE_isAdminRequest()) {
+    if (ADSENSE_mode() === 'disabled' || ADSENSE_isAdminRequest()) {
         return false;
     }
 
@@ -92,7 +128,7 @@ function ADSENSE_canServe()
 
 function ADSENSE_shouldLoadBootstrap()
 {
-    if (!ADSENSE_canServe()) {
+    if (!ADSENSE_canServe() || ADSENSE_isDebugPreview()) {
         return false;
     }
 
@@ -108,7 +144,6 @@ function ADSENSE_bootstrapHtml()
     }
 
     $publisherId = trim((string) ADSENSE_config('publisher_id', ''));
-
     $rendered = true;
 
     return '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='
@@ -121,42 +156,268 @@ function plugin_getheadercode_adsense()
     return ADSENSE_bootstrapHtml();
 }
 
-function ADSENSE_debugPlacement($placement)
+function ADSENSE_debugPlacement($placement, $message)
 {
-    if ((int) ADSENSE_config('debug_mode', 0) !== 1) {
+    if (!ADSENSE_isDebugPreview()) {
         return '';
     }
 
-    if (!SEC_hasRights('adsense.admin')) {
-        return '';
-    }
-
-    return '<div class="adsense-debug" data-adsense-placement="'
-        . htmlspecialchars($placement, ENT_QUOTES, 'UTF-8')
-        . '">AdSense placement: '
-        . htmlspecialchars($placement, ENT_QUOTES, 'UTF-8')
+    return '<div class="adsense-debug" style="border:1px dashed #888;padding:12px;margin:12px 0;text-align:center;"'
+        . ' data-adsense-placement="' . htmlspecialchars($placement, ENT_QUOTES, 'UTF-8') . '">'
+        . htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
         . '</div>';
+}
+
+function ADSENSE_getPlacement($name)
+{
+    global $_TABLES;
+
+    $name = ADSENSE_normalizePlacementName($name);
+    if ($name === '' || empty($_TABLES['adsense_placements'])) {
+        return false;
+    }
+
+    $result = DB_query(
+        "SELECT placement_id, name, slot_id, format, responsive, enabled "
+        . "FROM {$_TABLES['adsense_placements']} "
+        . "WHERE name = '" . DB_escapeString($name) . "' LIMIT 1"
+    );
+
+    if (!$result || DB_numRows($result) < 1) {
+        return false;
+    }
+
+    return DB_fetchArray($result);
+}
+
+function ADSENSE_getPlacements()
+{
+    global $_TABLES;
+
+    $placements = array();
+
+    if (empty($_TABLES['adsense_placements'])) {
+        return $placements;
+    }
+
+    $result = DB_query(
+        "SELECT placement_id, name, slot_id, format, responsive, enabled, created_at, updated_at "
+        . "FROM {$_TABLES['adsense_placements']} ORDER BY name"
+    );
+
+    if (!$result) {
+        return $placements;
+    }
+
+    while ($row = DB_fetchArray($result)) {
+        $placements[] = $row;
+    }
+
+    return $placements;
+}
+
+function ADSENSE_savePlacement($data, $placementId)
+{
+    global $_TABLES;
+
+    $name = isset($data['name']) ? ADSENSE_normalizePlacementName($data['name']) : '';
+    $slotId = isset($data['slot_id']) ? trim((string) $data['slot_id']) : '';
+    $format = isset($data['format']) ? ADSENSE_normalizeFormat($data['format']) : 'auto';
+    $responsive = !empty($data['responsive']) ? 1 : 0;
+    $enabled = !empty($data['enabled']) ? 1 : 0;
+    $placementId = (int) $placementId;
+
+    if ($name === '' || !ADSENSE_isSlotId($slotId)) {
+        return false;
+    }
+
+    $duplicateWhere = "name = '" . DB_escapeString($name) . "'";
+    if ($placementId > 0) {
+        $duplicateWhere .= ' AND placement_id <> ' . $placementId;
+    }
+
+    if (DB_count($_TABLES['adsense_placements'], 'placement_id', $duplicateWhere) > 0) {
+        return false;
+    }
+
+    $now = date('Y-m-d H:i:s');
+
+    if ($placementId > 0) {
+        DB_query(
+            "UPDATE {$_TABLES['adsense_placements']} SET "
+            . "name='" . DB_escapeString($name) . "', "
+            . "slot_id='" . DB_escapeString($slotId) . "', "
+            . "format='" . DB_escapeString($format) . "', "
+            . "responsive=" . $responsive . ', '
+            . "enabled=" . $enabled . ', '
+            . "updated_at='" . DB_escapeString($now) . "' "
+            . 'WHERE placement_id=' . $placementId
+        );
+    } else {
+        DB_save(
+            $_TABLES['adsense_placements'],
+            'name,slot_id,format,responsive,enabled,created_at,updated_at',
+            "'" . DB_escapeString($name) . "','"
+                . DB_escapeString($slotId) . "','"
+                . DB_escapeString($format) . "',"
+                . $responsive . ','
+                . $enabled . ",'"
+                . DB_escapeString($now) . "','"
+                . DB_escapeString($now) . "'"
+        );
+    }
+
+    return DB_error() === 0;
+}
+
+function ADSENSE_deletePlacement($placementId)
+{
+    global $_TABLES;
+
+    $placementId = (int) $placementId;
+    if ($placementId < 1) {
+        return false;
+    }
+
+    DB_delete($_TABLES['adsense_placements'], 'placement_id', $placementId);
+
+    return DB_error() === 0;
 }
 
 function ADSENSE_renderPlacement($placement)
 {
-    $placement = strtolower(trim((string) $placement));
-    $placement = preg_replace('/[^a-z0-9_-]/', '', $placement);
+    $placement = ADSENSE_normalizePlacementName($placement);
 
     if ($placement === '') {
         return '';
     }
 
-    if (!ADSENSE_canServe()) {
-        return ADSENSE_debugPlacement($placement);
+    $mode = ADSENSE_mode();
+
+    if ($mode !== 'manual' && $mode !== 'hybrid') {
+        return ADSENSE_debugPlacement($placement, 'AdSense placement disabled by serving mode: ' . $mode);
     }
 
-    /*
-     * Named placement storage is intentionally not hard-coded in this first
-     * foundation commit. Until the placement model is implemented, manual
-     * placements fail safely instead of embedding slot IDs in content.
-     */
-    return ADSENSE_debugPlacement($placement);
+    $row = ADSENSE_getPlacement($placement);
+    if ($row === false) {
+        return ADSENSE_debugPlacement($placement, 'Unknown AdSense placement: ' . $placement);
+    }
+
+    if (empty($row['enabled'])) {
+        return ADSENSE_debugPlacement($placement, 'Disabled AdSense placement: ' . $placement);
+    }
+
+    if (!ADSENSE_isSlotId($row['slot_id'])) {
+        return ADSENSE_debugPlacement($placement, 'Invalid slot ID for placement: ' . $placement);
+    }
+
+    if (!ADSENSE_canServe()) {
+        return ADSENSE_debugPlacement($placement, 'AdSense serving is unavailable for placement: ' . $placement);
+    }
+
+    if (ADSENSE_isDebugPreview()) {
+        return ADSENSE_debugPlacement($placement, 'AdSense preview: ' . $placement . ' / slot ' . $row['slot_id']);
+    }
+
+    $publisherId = trim((string) ADSENSE_config('publisher_id', ''));
+    $format = ADSENSE_normalizeFormat($row['format']);
+    $responsive = !empty($row['responsive']) ? 'true' : 'false';
+
+    return '<ins class="adsbygoogle" style="display:block"'
+        . ' data-ad-client="' . htmlspecialchars($publisherId, ENT_QUOTES, 'UTF-8') . '"'
+        . ' data-ad-slot="' . htmlspecialchars($row['slot_id'], ENT_QUOTES, 'UTF-8') . '"'
+        . ' data-ad-format="' . htmlspecialchars($format, ENT_QUOTES, 'UTF-8') . '"'
+        . ' data-full-width-responsive="' . $responsive . '"></ins>'
+        . '<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>';
+}
+
+function ADSENSE_tagList($value)
+{
+    if (is_array($value)) {
+        return $value;
+    }
+
+    if ($value === '' || $value === null) {
+        return array();
+    }
+
+    return array($value);
+}
+
+function ADSENSE_otherAutotagOwners()
+{
+    global $_PLUGINS;
+
+    $owners = array();
+
+    if (!is_array($_PLUGINS)) {
+        return $owners;
+    }
+
+    foreach ($_PLUGINS as $pluginName) {
+        if ($pluginName === 'adsense') {
+            continue;
+        }
+
+        $function = 'plugin_autotags_' . $pluginName;
+        if (!function_exists($function)) {
+            continue;
+        }
+
+        $tags = ADSENSE_tagList($function('tagname'));
+
+        foreach ($tags as $tag) {
+            $tag = strtolower(trim((string) $tag));
+            if ($tag !== '' && !isset($owners[$tag])) {
+                $owners[$tag] = $pluginName;
+            }
+        }
+    }
+
+    return $owners;
+}
+
+function ADSENSE_legacyAliasMap()
+{
+    return array(
+        'adsense' => ADSENSE_config('legacy_adsense_placement', 'ad-default'),
+        'inarticle' => ADSENSE_config('legacy_inarticle_placement', 'article-middle'),
+        'infeed' => ADSENSE_config('legacy_infeed_placement', 'feed'),
+        'leaderboard' => ADSENSE_config('legacy_leaderboard_placement', 'leaderboard')
+    );
+}
+
+function ADSENSE_availableLegacyAliases()
+{
+    if ((int) ADSENSE_config('legacy_aliases', 0) !== 1) {
+        return array();
+    }
+
+    $owners = ADSENSE_otherAutotagOwners();
+    $aliases = array();
+
+    foreach (ADSENSE_legacyAliasMap() as $tag => $placement) {
+        if (!isset($owners[$tag])) {
+            $aliases[$tag] = ADSENSE_normalizePlacementName($placement);
+        }
+    }
+
+    return $aliases;
+}
+
+function ADSENSE_autotagPlacement($autotag)
+{
+    $tag = isset($autotag['tag']) ? strtolower(trim((string) $autotag['tag'])) : 'ad';
+
+    if ($tag === 'ad') {
+        return isset($autotag['parm1'])
+            ? ADSENSE_normalizePlacementName($autotag['parm1'])
+            : '';
+    }
+
+    $aliases = ADSENSE_availableLegacyAliases();
+
+    return isset($aliases[$tag]) ? $aliases[$tag] : '';
 }
 
 function plugin_autotags_adsense($op, $content = '', $autotag = array())
@@ -164,7 +425,13 @@ function plugin_autotags_adsense($op, $content = '', $autotag = array())
     global $LANG_ADSENSE;
 
     if ($op === 'tagname') {
-        return 'ad';
+        $tags = array('ad');
+
+        foreach (array_keys(ADSENSE_availableLegacyAliases()) as $legacyTag) {
+            $tags[] = $legacyTag;
+        }
+
+        return $tags;
     }
 
     if ($op === 'description') {
@@ -176,7 +443,7 @@ function plugin_autotags_adsense($op, $content = '', $autotag = array())
     }
 
     if ($op === 'permission') {
-        return array('ad');
+        return plugin_autotags_adsense('tagname');
     }
 
     if ($op === 'nopermission' || $op === 'closetag') {
@@ -187,20 +454,12 @@ function plugin_autotags_adsense($op, $content = '', $autotag = array())
         return $content;
     }
 
-    $placement = '';
-
-    if (isset($autotag['parm1'])) {
-        $placement = trim((string) $autotag['parm1']);
+    if (!isset($autotag['tagstr'])) {
+        return $content;
     }
 
-    if ($placement === '' && isset($autotag['tagstr'])) {
-        $tagstr = trim((string) $autotag['tagstr']);
-        if (stripos($tagstr, '[ad:') === 0 && substr($tagstr, -1) === ']') {
-            $placement = substr($tagstr, 4, -1);
-        }
-    }
-
-    if ($placement === '' || !isset($autotag['tagstr'])) {
+    $placement = ADSENSE_autotagPlacement($autotag);
+    if ($placement === '') {
         return $content;
     }
 
@@ -223,7 +482,7 @@ function plugin_getadminoption_adsense()
 
     return array(
         $label,
-        $_CONF['site_admin_url'] . '/configuration.php?conf_group=adsense',
+        $_CONF['site_admin_url'] . '/plugins/adsense/index.php',
         ''
     );
 }
@@ -270,7 +529,7 @@ function plugin_upgrade_adsense()
 function plugin_autouninstall_adsense()
 {
     return array(
-        'tables'     => array(),
+        'tables'     => array('adsense_placements'),
         'groups'     => array('AdSense Admin'),
         'features'   => array('adsense.admin', 'config.adsense.tab_main'),
         'php_blocks' => array(),
