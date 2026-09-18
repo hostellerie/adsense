@@ -341,6 +341,8 @@ The placement engine must work on **rendered content context**, not only on stor
 
 ### Shared capability-driven content-source discovery
 
+The source-field audit/mutation requirements are now specified in `plugin-source-field-audit-mutation-contract.md` in the Memorandum. AdSense should implement against that shared contract as providers adopt it.
+
 Historical autotags may exist in **any text-bearing Geeklog content**, including core content and plugin-owned content.
 
 The audit/migration layer must therefore use the same shared Geeklog/provider contracts already consumed by Agent rather than inventing an AdSense-specific provider API or hard-coding assumptions about only `stories` and `staticpages`.
@@ -660,6 +662,7 @@ Development should remain aligned with the Geeklog Memorandum, especially:
 - `plugin-configuration-migration-guide-2.2.2.md`
 - `plugin-configuration-tooltips.md`
 - `plugin-content-interoperability-contract.md`
+- `plugin-source-field-audit-mutation-contract.md`
 - `llm-agent-content-representation-contract.md`
 - `multisite-development-principles.md`
 - `plugin-metadata-manifest.md`
