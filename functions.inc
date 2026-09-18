@@ -236,8 +236,14 @@ function ADSENSE_savePlacement($data, $placementId)
         $duplicateWhere .= ' AND placement_id <> ' . $placementId;
     }
 
-    if (DB_count($_TABLES['adsense_placements'], 'placement_id', $duplicateWhere) > 0) {
-        return false;
+    $duplicateResult = DB_query(
+        "SELECT COUNT(*) AS total FROM {$_TABLES['adsense_placements']} WHERE " . $duplicateWhere
+    );
+    if ($duplicateResult) {
+        $duplicateRow = DB_fetchArray($duplicateResult);
+        if (isset($duplicateRow['total']) && (int) $duplicateRow['total'] > 0) {
+            return false;
+        }
     }
 
     $now = date('Y-m-d H:i:s');
