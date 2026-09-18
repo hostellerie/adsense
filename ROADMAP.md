@@ -339,11 +339,22 @@ The placement engine must work on **rendered content context**, not only on stor
 - [ ] Keep rendering compatible with both Geeklog 2.1.1 and 2.2.2.
 - [ ] Treat unavailable provider context as "placement rule cannot be evaluated", not as a fatal error.
 
-### Generic content-source contract
+### Shared capability-driven content-source discovery
 
 Historical autotags may exist in **any text-bearing Geeklog content**, including core content and plugin-owned content.
 
-The audit/migration layer must therefore use a provider model instead of hard-coded assumptions about only `stories` and `staticpages`.
+The audit/migration layer must therefore use the same shared Geeklog/provider contracts already consumed by Agent rather than inventing an AdSense-specific provider API or hard-coding assumptions about only `stories` and `staticpages`.
+
+AdSense must not depend on Agent being installed. Both plugins should consume the same owning-plugin contracts independently.
+
+Preferred discovery order:
+
+1. standard Geeklog content interoperability through `PLG_getItemInfo()` / `plugin_getiteminfo_*()`;
+2. bounded plugin services exposed through `PLG_invokeService()` when a specialized capability is needed;
+3. documented versioned plugin contracts/functions where the data model does not fit Item Info cleanly;
+4. isolated compatibility adapters only for Geeklog Core/legacy content that has no suitable shared contract yet.
+
+This mirrors Agent's provider-neutral design while keeping the owning plugin authoritative.
 
 Core sources to support explicitly:
 
@@ -367,16 +378,22 @@ Plugin/provider sources to support through capability detection:
 
 Provider requirements:
 
-- [ ] Define a small AdSense legacy-content provider contract/callback for plugins that need audit/migration support.
-- [ ] A provider must expose stable content identity (`type + id`) and one or more named text fields.
+- [ ] Reuse shared Geeklog content/capability contracts already suitable for Agent and other consumers; do not create an AdSense-only content API.
+- [ ] Discover provider capabilities dynamically instead of maintaining a permanent hard-coded plugin/table registry.
+- [ ] Use `PLG_getItemInfo()` for normalized readable content/resources where it exposes the fields required for audit.
+- [ ] Use `PLG_invokeService()` for specialized bounded capabilities such as raw-field audit/export when an owning plugin exposes them.
+- [ ] Support documented versioned plugin functions/contracts where Item Info or services are not a natural fit.
+- [ ] A provider must expose stable content identity (`plugin/type + id + optional subtype`) and one or more named text fields when raw-field audit is supported.
+- [ ] Distinguish capabilities such as `content.read`, `content.collection`, raw/source-field inspection, and write/migration actions.
+- [ ] Never infer write permission from a read capability.
 - [ ] A provider must expose read operations independently from write operations.
 - [ ] A provider must explicitly declare whether a field is writable by migration.
-- [ ] A provider must provide its own save/update callback for modifications; AdSense must not update another plugin's tables directly.
+- [ ] A provider must remain responsible for its own save/update operation, validation, permissions and lifecycle events; AdSense must not update another plugin's tables directly.
 - [ ] AdSense must never infer writable fields from another plugin's schema.
-- [ ] Missing provider support means "not auditable/migratable through AdSense", not permission to query private tables.
+- [ ] Missing provider capability means "not auditable/migratable through that shared contract", not permission to query private tables.
 - [ ] Provider failures must be isolated so one broken plugin cannot abort the entire site audit.
 - [ ] Scans must remain active-site scoped in multisite installations.
-- [ ] Provider capability discovery must be cached only for the current request/site context.
+- [ ] Capability discovery must be request/site scoped and must not leak one site's plugin capabilities into another.
 
 ### Legacy autotag audit
 
@@ -471,8 +488,25 @@ During coexistence with the historical Autotags plugin:
 
 Use the Geeklog Plugin Content Interoperability Contract only in the role that applies to AdSense: **consumer of content context**, not owner of content.
 
+AdSense should follow the same provider/capability principles as Agent:
+
+```text
+owning plugin
+    ↓
+Geeklog Item Info / Plugin Service / versioned shared contract
+    ↓
+capability detection
+    ↓
+AdSense audit / placement / migration consumer
+```
+
+Agent is a useful reference implementation, but AdSense must not call Agent merely to reach another plugin. The shared provider contract remains the source of truth.
+
 - [ ] Consume stable `type + id + canonical URL` when a compatible content provider exposes them.
-- [ ] Prefer `PLG_getItemInfo()`/provider callbacks over direct reads of another plugin's database.
+- [ ] Prefer `PLG_getItemInfo()`, `PLG_invokeService()`, or documented versioned provider contracts over direct reads of another plugin's database.
+- [ ] Reuse capability names/semantics already established by shared Geeklog/Agent contracts when they match the need.
+- [ ] Keep read/audit capabilities distinct from destructive migration/write capabilities.
+- [ ] Feature-detect every optional provider contract and contract version before use.
 - [ ] Support placement context for core stories and static pages first.
 - [ ] Evaluate context consumption from Forum.
 - [ ] Evaluate context consumption from MediaGallery.
@@ -626,6 +660,7 @@ Development should remain aligned with the Geeklog Memorandum, especially:
 - `plugin-configuration-migration-guide-2.2.2.md`
 - `plugin-configuration-tooltips.md`
 - `plugin-content-interoperability-contract.md`
+- `llm-agent-content-representation-contract.md`
 - `multisite-development-principles.md`
 - `plugin-metadata-manifest.md`
 - `plugin-shared-files-upgrade-safety.md`
