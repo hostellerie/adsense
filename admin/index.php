@@ -89,6 +89,31 @@ $content .= '<p><a href="' . htmlspecialchars($configUrl, ENT_QUOTES, 'UTF-8') .
     . htmlspecialchars($LANG_ADSENSE['open_configuration'], ENT_QUOTES, 'UTF-8')
     . '</a></p>';
 
+$content .= '<details class="adsense-documentation" style="margin:1em 0 1.5em">';
+$content .= '<summary style="cursor:pointer;font-weight:700">'
+    . htmlspecialchars($LANG_ADSENSE['documentation_title'], ENT_QUOTES, 'UTF-8')
+    . '</summary>';
+$content .= '<div style="margin-top:.8em">';
+$content .= '<p>' . htmlspecialchars($LANG_ADSENSE['documentation_intro'], ENT_QUOTES, 'UTF-8') . '</p>';
+
+if (isset($LANG_ADSENSE['documentation_steps']) && is_array($LANG_ADSENSE['documentation_steps'])) {
+    $content .= '<ol>';
+    foreach ($LANG_ADSENSE['documentation_steps'] as $step) {
+        $content .= '<li>' . htmlspecialchars($step, ENT_QUOTES, 'UTF-8') . '</li>';
+    }
+    $content .= '</ol>';
+}
+
+$content .= '<p><a href="'
+    . htmlspecialchars($LANG_ADSENSE['documentation_signup_url'], ENT_QUOTES, 'UTF-8')
+    . '" target="_blank" rel="noopener noreferrer">'
+    . htmlspecialchars($LANG_ADSENSE['documentation_signup'], ENT_QUOTES, 'UTF-8')
+    . '</a></p>';
+$content .= '<p><small>'
+    . htmlspecialchars($LANG_ADSENSE['documentation_note'], ENT_QUOTES, 'UTF-8')
+    . '</small></p>';
+$content .= '</div></details>';
+
 $content .= '<h2>' . htmlspecialchars($LANG_ADSENSE['placements_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
 $content .= '<p>' . htmlspecialchars($LANG_ADSENSE['placements_help'], ENT_QUOTES, 'UTF-8') . '</p>';
 
