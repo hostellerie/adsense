@@ -48,6 +48,22 @@ The current `develop-1.0` branch includes:
 
 Runtime validation on the supported Geeklog/PHP combinations is still required before the 1.0 release.
 
+## Legacy content and automatic placement
+
+Historical AdSense-compatible autotags may exist in many kinds of Geeklog content, not only stories and static pages. They can also appear in blocks, forum posts, comments, Documents content, plugin descriptions, and other text-bearing content provided by installed plugins.
+
+The planned migration model is deliberately non-destructive:
+
+- existing content can keep historical tags and continue to render them;
+- administrators can run a read-only site audit across registered content providers;
+- destructive tag removal, if used, requires an explicit previewed administrator action;
+- new automatic ad placement should happen at render time and should not write AdSense markers into newly created content automatically;
+- plugin-owned content must be audited or modified through provider callbacks/capabilities rather than direct AdSense queries against another plugin's private tables;
+- `[amazon]` and `[youtube]` remain outside AdSense migration;
+- legacy parameters such as `:1` can be accepted as historical syntax and ignored when they have no configured meaning.
+
+This allows a site to keep old content untouched while gradually moving new rendering to the AdSense plugin.
+
 ## Advertising modes
 
 ### Auto Ads
