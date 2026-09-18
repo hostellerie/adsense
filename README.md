@@ -9,7 +9,7 @@ The project is intended to support two very different site requirements:
 
 A **hybrid mode** will allow both approaches to be used together.
 
-> **Development status:** this repository is currently the development foundation for the future 1.0 release. The features described below are targets, not a statement that they are already implemented.
+> **Development status:** active 1.0 development. The plugin foundation, native Geeklog configuration, AdSense bootstrap loading, named manual placements, `[ad:PLACEMENT]`, administrator preview mode, legacy autotag conflict detection, and automatic `dist/` packaging are implemented. Items still marked as planned below or in the roadmap are not yet release-validated.
 
 ## Goals
 
@@ -28,6 +28,24 @@ Core goals:
 - validate or assist with `ads.txt`;
 - remain safe for multisite Geeklog installations;
 - provide diagnostics before adding reporting or account-management features.
+
+## Current implementation
+
+The current `develop-1.0` branch includes:
+
+- standard Geeklog autoinstall metadata and `plugin.json`;
+- native Geeklog Configuration settings for serving mode, publisher ID, debug preview, and legacy aliases;
+- a site-scoped `adsense_placements` table for named manual placements;
+- an administration page for creating, editing, disabling, and deleting placements;
+- centralized rendering of responsive AdSense units;
+- native `[ad:PLACEMENT]` autotag support;
+- Auto Ads, Manual, Hybrid, and Disabled serving modes;
+- administrator-only placeholders instead of live ads when debug preview is enabled;
+- conflict-aware legacy alias discovery for `adsense`, `inarticle`, `infeed`, and `leaderboard`;
+- explicit non-ownership of `amazon` and `youtube`;
+- a GitHub Actions build that validates PHP syntax and `plugin.json`, rejects hidden archive entries, and writes an installable ZIP to `dist/`.
+
+Runtime validation on the supported Geeklog/PHP combinations is still required before the 1.0 release.
 
 ## Advertising modes
 
