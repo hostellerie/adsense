@@ -60,31 +60,31 @@ AdSense must not query another plugin's private SQL tables to understand its con
 
 ### Plugin foundation
 
-- [ ] Create the standard Geeklog plugin structure.
-- [ ] Add root-level `autoinstall.php` and use Geeklog's standard installer rather than a legacy custom `admin/install.php` flow.
+- [x] Create the standard Geeklog plugin structure.
+- [x] Add root-level `autoinstall.php` and use Geeklog's standard installer rather than a legacy custom `admin/install.php` flow.
 - [ ] Add install, uninstall, upgrade, enable, and disable lifecycle support.
 - [ ] Declare and enforce the compatibility baseline: Geeklog 2.1.1–2.2.2 and PHP 5.6–8.1.
 - [ ] Keep compatibility helpers isolated from normal business logic.
-- [ ] Add `plugin.json` at package root following Memorandum schema 1.
-- [ ] Keep `plugin.json` static, valid UTF-8 JSON, and free of executable or site-specific data.
+- [x] Add `plugin.json` at package root following Memorandum schema 1.
+- [x] Keep `plugin.json` static, valid UTF-8 JSON, and free of executable or site-specific data.
 - [ ] Ensure manifest `id`, public name, icon, Geeklog requirement, and PHP requirement remain consistent with native plugin installer metadata.
-- [ ] Add English language files as the canonical interface contract and provide safe language fallback.
+- [x] Add English language files as the canonical interface contract and provide safe language fallback.
 - [ ] Use `.thtml` templates for significant administration/presentation markup where practical.
-- [ ] Keep runtime output theme-independent; Eclipse may be tested but must not be required.
-- [ ] Use Geeklog `DB_*` abstraction for any plugin database access.
-- [ ] Never hard-code a table prefix such as `gl_`.
-- [ ] Initialize runtime variables explicitly and eliminate PHP 8 warnings/notices.
+- [x] Keep runtime output theme-independent; Eclipse may be tested but must not be required.
+- [x] Use Geeklog `DB_*` abstraction for any plugin database access.
+- [x] Never hard-code a table prefix such as `gl_`.
+- [x] Initialize runtime variables explicitly and eliminate PHP 8 warnings/notices.
 
 ### Native Geeklog integration points
 
 Use existing Plugin APIs instead of inventing equivalent mechanisms.
 
-- [ ] Use `plugin_getheadercode_adsense()` for AdSense head integration where compatible with the supported Geeklog versions.
+- [x] Use `plugin_getheadercode_adsense()` for AdSense head integration where compatible with the supported Geeklog versions.
 - [ ] Verify a safe 2.1.1 fallback if header integration behavior differs.
-- [ ] Use `plugin_autotags_adsense()` for the native AdSense autotag implementation.
-- [ ] Support the Geeklog autotag discovery/permission/parse modes required by the supported versions.
+- [x] Use `plugin_autotags_adsense()` for the native AdSense autotag implementation.
+- [x] Support the Geeklog autotag discovery/permission/parse modes required by the supported versions.
 - [ ] Use contextual autotag parameters such as content type/id when available, without requiring them.
-- [ ] Use `plugin_getadminoption_adsense()` and/or `plugin_cclabel_adsense()` for administration entry points as appropriate.
+- [x] Use `plugin_getadminoption_adsense()` and/or `plugin_cclabel_adsense()` for administration entry points as appropriate.
 - [ ] Use `plugin_getconfigtooltip_adsense()` for configuration help instead of custom tooltip JavaScript.
 - [ ] Use `plugin_migrate_adsense()` only if URL/path changes require site-specific AdSense state updates.
 - [ ] Use `plugin_configchange_adsense()` only where reacting to configuration changes is actually necessary.
@@ -94,81 +94,81 @@ Use existing Plugin APIs instead of inventing equivalent mechanisms.
 
 Ordinary plugin configuration should use Geeklog's Configuration API.
 
-- [ ] Define configuration hierarchy explicitly as `subgroup -> tab -> fieldset -> settings`.
-- [ ] Add configuration defaults through `install_defaults.php`.
+- [x] Define configuration hierarchy explicitly as `subgroup -> tab -> fieldset -> settings`.
+- [x] Add configuration defaults through `install_defaults.php`.
 - [ ] Use valid `config::add()` parameter ordering for both Geeklog generations supported by the plugin.
 - [ ] Use `NULL` for `selection_array` unless a real language-backed selection list is defined.
-- [ ] Define matching `$LANG_configsections`, `$LANG_confignames`, `$LANG_configsubgroups`, `$LANG_tab`, and `$LANG_fs` entries.
-- [ ] Define `$LANG_configselects` entries for every selection-backed option.
-- [ ] Expose readable labels for modes instead of raw `0/1/2/3` choices.
+- [x] Define matching `$LANG_configsections`, `$LANG_confignames`, `$LANG_configsubgroups`, `$LANG_tab`, and `$LANG_fs` entries.
+- [x] Define `$LANG_configselects` entries for every selection-backed option.
+- [x] Expose readable labels for modes instead of raw `0/1/2/3` choices.
 - [ ] Add concise tooltips for technically significant settings such as serving mode, legacy aliases, consent behavior, debug mode, and compatibility options.
-- [ ] Retrieve plugin configuration through Geeklog's configuration system rather than querying `conf_values` directly on page requests.
-- [ ] Protect configuration reads with `isset()`-style PHP 5.6-safe fallbacks.
+- [x] Retrieve plugin configuration through Geeklog's configuration system rather than querying `conf_values` directly on page requests.
+- [x] Protect configuration reads with `isset()`-style PHP 5.6-safe fallbacks.
 - [ ] Test a fresh configuration independently from upgrade/migration paths.
 - [ ] Repair persisted configuration metadata explicitly during upgrades when required; do not assume replacing files rewrites `conf_values`.
 
 ### Security and administration
 
-- [ ] Define a dedicated AdSense administration feature/group through standard Geeklog installation metadata if required.
-- [ ] Enforce ACL permissions in every administration action, independently of menu visibility.
-- [ ] Protect every state-changing administration operation with Geeklog CSRF/security tokens.
-- [ ] Validate all IDs, placement names, slot IDs, URL patterns, and configuration inputs.
-- [ ] Escape output according to its HTML/attribute/JavaScript context.
+- [x] Define a dedicated AdSense administration feature/group through standard Geeklog installation metadata if required.
+- [x] Enforce ACL permissions in every administration action, independently of menu visibility.
+- [x] Protect every state-changing administration operation with Geeklog CSRF/security tokens.
+- [x] Validate all IDs, placement names, slot IDs, URL patterns, and configuration inputs.
+- [x] Escape output according to its HTML/attribute/JavaScript context.
 - [ ] Never expose OAuth tokens, secrets, or sensitive provider configuration in diagnostics, tooltips, logs, `plugin.json`, or rendered page source.
-- [ ] Ensure preview/debug functions are administrator-only.
+- [x] Ensure preview/debug functions are administrator-only.
 - [ ] Ensure diagnostics are read-only unless the administrator explicitly invokes a protected repair/action.
 
 ### Global AdSense configuration
 
-- [ ] Enable/disable the plugin's ad-serving layer.
-- [ ] Configure and validate the publisher ID (`ca-pub-...`).
+- [x] Enable/disable the plugin's ad-serving layer.
+- [x] Configure and validate the publisher ID (`ca-pub-...`).
 - [ ] Implement explicit modes:
   - [ ] Disabled
   - [ ] Auto Ads
   - [ ] Manual placements
   - [ ] Hybrid
-- [ ] Inject the AdSense loader through the native Geeklog header integration path.
-- [ ] Prevent duplicate loader injection by the plugin itself.
+- [x] Inject the AdSense loader through the native Geeklog header integration path.
+- [x] Prevent duplicate loader injection by the plugin itself.
 - [ ] Detect likely duplicate AdSense loaders already present in the theme, header customizations, or other code.
-- [ ] Never render advertising inside Geeklog administration pages.
-- [ ] Fail safely if the publisher ID or required placement configuration is missing.
+- [x] Never render advertising inside Geeklog administration pages.
+- [x] Fail safely if the publisher ID or required placement configuration is missing.
 
 ### Auto Ads
 
-- [ ] Support a minimal Auto Ads integration.
+- [x] Support a minimal Auto Ads integration.
 - [ ] Keep Google-side Auto Ads controls in AdSense rather than reproducing them unnecessarily in Geeklog.
 - [ ] Document the boundary between Geeklog configuration and Google AdSense configuration.
-- [ ] Allow Auto Ads to coexist with explicitly managed placements in Hybrid mode.
+- [x] Allow Auto Ads to coexist with explicitly managed placements in Hybrid mode.
 - [ ] Ensure an unavailable external Google resource never causes a PHP/page-rendering failure.
 
 ### Named manual placements
 
-- [ ] Define a storage model for named placements.
-- [ ] Decide explicitly which data belongs in native Geeklog configuration and which data, if any, justifies a plugin table.
-- [ ] Keep ordinary scalar settings in the native Configuration API rather than creating a custom settings table.
-- [ ] Use a plugin table only if structured/repeating placement records cannot reasonably be represented by native configuration.
-- [ ] Store slot ID separately from placement name.
-- [ ] Support enable/disable per placement.
-- [ ] Support responsive ad units.
-- [ ] Support common AdSense format metadata without hard-coding presentation into article content.
-- [ ] Render every placement through one central renderer.
-- [ ] Avoid duplicated bootstrap scripts when multiple placements occur on one page.
-- [ ] Provide initial placement targets for Geeklog blocks and explicit autotags.
-- [ ] Keep placement rendering functional when optional content context is unavailable.
+- [x] Define a storage model for named placements.
+- [x] Decide explicitly which data belongs in native Geeklog configuration and which data, if any, justifies a plugin table.
+- [x] Keep ordinary scalar settings in the native Configuration API rather than creating a custom settings table.
+- [x] Use a plugin table only if structured/repeating placement records cannot reasonably be represented by native configuration.
+- [x] Store slot ID separately from placement name.
+- [x] Support enable/disable per placement.
+- [x] Support responsive ad units.
+- [x] Support common AdSense format metadata without hard-coding presentation into article content.
+- [x] Render every placement through one central renderer.
+- [x] Avoid duplicated bootstrap scripts when multiple placements occur on one page.
+- [x] Provide initial placement targets for Geeklog blocks and explicit autotags.
+- [x] Keep placement rendering functional when optional content context is unavailable.
 
 ### Native autotag namespace
 
-- [ ] Reserve `[ad:PLACEMENT]` for new AdSense plugin placements.
+- [x] Reserve `[ad:PLACEMENT]` for new AdSense plugin placements.
 - [ ] Examples:
   - [ ] `[ad:article-middle]`
   - [ ] `[ad:article-bottom]`
   - [ ] `[ad:leaderboard]`
   - [ ] `[ad:sidebar]`
-- [ ] Declare and parse the autotag through `plugin_autotags_adsense()`.
-- [ ] Resolve the placement name through plugin configuration/storage.
-- [ ] Never require a Google slot ID to be stored in article text.
+- [x] Declare and parse the autotag through `plugin_autotags_adsense()`.
+- [x] Resolve the placement name through plugin configuration/storage.
+- [x] Never require a Google slot ID to be stored in article text.
 - [ ] Apply permission/exclusion logic during autotag rendering.
-- [ ] Return safe empty/debug output when a requested placement is disabled, unknown, or not permitted.
+- [x] Return safe empty/debug output when a requested placement is disabled, unknown, or not permitted.
 - [ ] Test autotag rendering in stories and static pages on Geeklog 2.1.1 and 2.2.2 before extending to other providers.
 
 ### Historical autotag preservation
@@ -185,15 +185,15 @@ Known historical autotags that must be considered from the beginning:
 Required behavior:
 
 - [ ] Detect whether these tags are already registered by the Autotags plugin or another provider.
-- [ ] Do not claim or override an existing provider silently.
-- [ ] Treat `[adsense]`, `[inarticle]`, `[infeed]`, and `[leaderboard]` as possible AdSense-compatible legacy tags.
-- [ ] Keep `[amazon]` external to the AdSense plugin.
-- [ ] Keep `[youtube]` external to the AdSense plugin.
-- [ ] Implement a legacy alias/adapter model that can map compatible historical tags to named placements.
-- [ ] Make legacy mapping opt-in/configurable where ownership is ambiguous.
+- [x] Do not claim or override an existing provider silently.
+- [x] Treat `[adsense]`, `[inarticle]`, `[infeed]`, and `[leaderboard]` as possible AdSense-compatible legacy tags.
+- [x] Keep `[amazon]` external to the AdSense plugin.
+- [x] Keep `[youtube]` external to the AdSense plugin.
+- [x] Implement a legacy alias/adapter model that can map compatible historical tags to named placements.
+- [x] Make legacy mapping opt-in/configurable where ownership is ambiguous.
 - [ ] Keep legacy compatibility runtime-only until an explicit site upgrade/migration changes persisted state.
-- [ ] Do not rewrite stored content during install, normal frontend execution, or ordinary upgrade.
-- [ ] Do not remove historical tags from content during uninstall.
+- [x] Do not rewrite stored content during install, normal frontend execution, or ordinary upgrade.
+- [x] Do not remove historical tags from content during uninstall.
 - [ ] Warn before uninstall when native AdSense autotags remain in stored content.
 
 Suggested default mapping model:
@@ -212,9 +212,9 @@ The actual mapping must remain configurable because historical definitions may d
 
 ### Multisite isolation
 
-- [ ] Use the active Geeklog site context instead of implementing independent host/site detection.
-- [ ] Derive URLs and paths from the current site's `$_CONF` values.
-- [ ] Use the active site's `$_TABLES` mapping for plugin tables.
+- [x] Use the active Geeklog site context instead of implementing independent host/site detection.
+- [x] Derive URLs and paths from the current site's `$_CONF` values.
+- [x] Use the active site's `$_TABLES` mapping for plugin tables.
 - [ ] Keep publisher ID, serving mode, placement definitions, legacy aliases, exclusions, consent settings, diagnostics state, and future API credentials isolated per site.
 - [ ] Never cache one site's AdSense configuration in a way that can leak into another site context.
 - [ ] Never scan or modify sibling sites during normal frontend/admin requests.
@@ -241,7 +241,7 @@ This is a release requirement whenever sites share the same AdSense plugin files
 
 AdSense 1.0 should avoid persistent files unless they are genuinely necessary.
 
-- [ ] Prefer native configuration and, if needed, site-scoped plugin tables for plugin state.
+- [x] Prefer native configuration and, if needed, site-scoped plugin tables for plugin state.
 - [ ] Do not use Geeklog cache directories for persistent plugin data.
 - [ ] If a future feature requires persistent files, derive storage from the active site's `$_CONF['path_data']`.
 - [ ] Keep persistent storage outside the public web root unless direct public access is required.
@@ -263,7 +263,7 @@ AdSense 1.0 should avoid persistent files unless they are genuinely necessary.
 
 ### Exclusions
 
-- [ ] Exclude Geeklog administration.
+- [x] Exclude Geeklog administration.
 - [ ] Add configurable exclusions for common non-content pages such as login, registration, search, and account pages.
 - [ ] Support URL/path exclusion patterns.
 - [ ] Support anonymous vs authenticated-user rules.
@@ -283,7 +283,7 @@ AdSense 1.0 should avoid persistent files unless they are genuinely necessary.
 - [ ] Report placement configuration issues.
 - [ ] Report legacy autotag name conflicts.
 - [ ] Report the active site's persisted/configuration schema state when useful for upgrade diagnostics.
-- [ ] Add an administrator-only preview/debug mode that renders placement placeholders instead of live ads.
+- [x] Add an administrator-only preview/debug mode that renders placement placeholders instead of live ads.
 - [ ] Ensure diagnostics never trigger schema migrations or expensive content scans automatically.
 
 ### 1.0 release criteria
@@ -498,10 +498,10 @@ Before each release, verify the points that are applicable to AdSense:
 
 ### Metadata and packaging
 
-- [ ] `plugin.json` is valid and static.
-- [ ] Manifest requirements match actual release support.
-- [ ] Runtime/native installer metadata remains authoritative.
-- [ ] Release archive contains the expected Geeklog plugin structure.
+- [x] `plugin.json` is valid and static.
+- [x] Manifest requirements match actual release support.
+- [x] Runtime/native installer metadata remains authoritative.
+- [x] Release archive contains the expected Geeklog plugin structure.
 
 ### Interoperability
 
