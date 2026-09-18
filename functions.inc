@@ -476,6 +476,15 @@ function plugin_autotags_adsense($op, $content = '', $autotag = array())
     );
 }
 
+function plugin_getconfigtooltip_adsense($id)
+{
+    global $LANG_ADSENSE;
+
+    $key = 'tooltip_' . (string) $id;
+
+    return isset($LANG_ADSENSE[$key]) ? $LANG_ADSENSE[$key] : '';
+}
+
 function plugin_getadminoption_adsense()
 {
     global $_CONF, $LANG_ADSENSE;
