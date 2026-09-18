@@ -73,7 +73,7 @@ AdSense must not query another plugin's private SQL tables to understand its con
 - [x] Keep runtime output theme-independent; Eclipse may be tested but must not be required.
 - [x] Use Geeklog `DB_*` abstraction for any plugin database access.
 - [x] Never hard-code a table prefix such as `gl_`.
-- [x] Initialize runtime variables explicitly and eliminate PHP 8 warnings/notices.
+- [ ] Initialize runtime variables explicitly and eliminate PHP 8 warnings/notices.
 
 ### Native Geeklog integration points
 
@@ -82,7 +82,7 @@ Use existing Plugin APIs instead of inventing equivalent mechanisms.
 - [x] Use `plugin_getheadercode_adsense()` for AdSense head integration where compatible with the supported Geeklog versions.
 - [ ] Verify a safe 2.1.1 fallback if header integration behavior differs.
 - [x] Use `plugin_autotags_adsense()` for the native AdSense autotag implementation.
-- [x] Support the Geeklog autotag discovery/permission/parse modes required by the supported versions.
+- [ ] Support the Geeklog autotag discovery/permission/parse modes required by the supported versions.
 - [ ] Use contextual autotag parameters such as content type/id when available, without requiring them.
 - [x] Use `plugin_getadminoption_adsense()` and/or `plugin_cclabel_adsense()` for administration entry points as appropriate.
 - [ ] Use `plugin_getconfigtooltip_adsense()` for configuration help instead of custom tooltip JavaScript.
@@ -153,7 +153,7 @@ Ordinary plugin configuration should use Geeklog's Configuration API.
 - [x] Support common AdSense format metadata without hard-coding presentation into article content.
 - [x] Render every placement through one central renderer.
 - [x] Avoid duplicated bootstrap scripts when multiple placements occur on one page.
-- [x] Provide initial placement targets for Geeklog blocks and explicit autotags.
+- [ ] Provide initial placement targets for Geeklog blocks and explicit autotags.
 - [x] Keep placement rendering functional when optional content context is unavailable.
 
 ### Native autotag namespace
