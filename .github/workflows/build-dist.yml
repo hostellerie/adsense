@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: adsense-build-dist-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-dist:
     runs-on: ubuntu-latest
