@@ -42,6 +42,7 @@ The current `develop-1.0` branch includes:
 - Auto Ads, Manual, Hybrid, and Disabled serving modes;
 - administrator-only placeholders instead of live ads when debug preview is enabled;
 - conflict-aware legacy alias discovery for `adsense`, `inarticle`, `infeed`, and `leaderboard`;
+- read-only `ads.txt` diagnostics against the active site's root file and configured publisher ID;
 - explicit non-ownership of `amazon` and `youtube`;
 - a GitHub Actions build that validates PHP syntax and `plugin.json`, rejects hidden archive entries, and writes an installable ZIP to `dist/`.
 
