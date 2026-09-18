@@ -73,6 +73,7 @@ $placements = ADSENSE_getPlacements();
 $owners = ADSENSE_otherAutotagOwners();
 $legacyMap = ADSENSE_legacyAliasMap();
 $availableAliases = ADSENSE_availableLegacyAliases();
+$adsTxtStatus = ADSENSE_adsTxtStatus();
 $token = SEC_createToken();
 $configUrl = $_CONF['site_admin_url'] . '/configuration.php?conf_group=adsense';
 
@@ -210,6 +211,36 @@ $content .= '<tr><td><code>[amazon]</code></td><td>—</td><td>'
     . htmlspecialchars($LANG_ADSENSE['external_unchanged'], ENT_QUOTES, 'UTF-8') . '</td></tr>';
 $content .= '<tr><td><code>[youtube]</code></td><td>—</td><td>'
     . htmlspecialchars($LANG_ADSENSE['external_unchanged'], ENT_QUOTES, 'UTF-8') . '</td></tr>';
+$content .= '</tbody></table>';
+
+$content .= '<h2>' . htmlspecialchars($LANG_ADSENSE['ads_txt_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
+$content .= '<p>' . htmlspecialchars($LANG_ADSENSE['ads_txt_help'], ENT_QUOTES, 'UTF-8') . '</p>';
+$content .= '<table class="admin-list adsense-admin-table"><tbody>';
+$content .= '<tr><th>' . htmlspecialchars($LANG_ADSENSE['ads_txt_url'], ENT_QUOTES, 'UTF-8') . '</th><td><code>'
+    . htmlspecialchars($adsTxtStatus['url'], ENT_QUOTES, 'UTF-8') . '</code></td></tr>';
+$content .= '<tr><th>' . htmlspecialchars($LANG_ADSENSE['ads_txt_path'], ENT_QUOTES, 'UTF-8') . '</th><td><code>'
+    . htmlspecialchars($adsTxtStatus['path'], ENT_QUOTES, 'UTF-8') . '</code></td></tr>';
+
+if (!$adsTxtStatus['publisher_valid']) {
+    $adsTxtMessage = $LANG_ADSENSE['ads_txt_publisher_invalid'];
+} elseif (!$adsTxtStatus['exists']) {
+    $adsTxtMessage = $LANG_ADSENSE['ads_txt_missing'];
+} elseif (!$adsTxtStatus['readable']) {
+    $adsTxtMessage = $LANG_ADSENSE['ads_txt_unreadable'];
+} elseif (!$adsTxtStatus['publisher_found']) {
+    $adsTxtMessage = $LANG_ADSENSE['ads_txt_line_missing'];
+} else {
+    $adsTxtMessage = $LANG_ADSENSE['ads_txt_ok'];
+}
+
+$content .= '<tr><th>' . htmlspecialchars($LANG_ADSENSE['status'], ENT_QUOTES, 'UTF-8') . '</th><td>'
+    . htmlspecialchars($adsTxtMessage, ENT_QUOTES, 'UTF-8') . '</td></tr>';
+
+if ($adsTxtStatus['expected_line'] !== '') {
+    $content .= '<tr><th>' . htmlspecialchars($LANG_ADSENSE['ads_txt_expected'], ENT_QUOTES, 'UTF-8') . '</th><td><code>'
+        . htmlspecialchars($adsTxtStatus['expected_line'], ENT_QUOTES, 'UTF-8') . '</code></td></tr>';
+}
+
 $content .= '</tbody></table>';
 
 $content .= '<h2>' . htmlspecialchars($LANG_ADSENSE['usage_title'], ENT_QUOTES, 'UTF-8') . '</h2>';
