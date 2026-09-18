@@ -4,7 +4,43 @@
 
 $LANG_ADSENSE = array(
     'plugin_name' => 'AdSense',
-    'autotag_description' => '[ad:PLACEMENT] renders a named AdSense placement.'
+    'admin_title' => 'AdSense',
+    'admin_intro' => 'Manage named AdSense placements here. Global serving settings remain in Geeklog Configuration.',
+    'open_configuration' => 'Open AdSense configuration',
+    'autotag_description' => '[ad:PLACEMENT] renders a named AdSense placement.',
+    'placements_title' => 'Named placements',
+    'placements_help' => 'Create stable Geeklog-side placement names and associate them with Google AdSense slot IDs. Content should reference the placement name, not the slot ID.',
+    'placement_name' => 'Placement name',
+    'slot_id' => 'AdSense slot ID',
+    'format' => 'Format',
+    'responsive' => 'Responsive',
+    'enabled' => 'Enabled',
+    'actions' => 'Actions',
+    'save' => 'Save',
+    'add' => 'Add placement',
+    'delete' => 'Delete',
+    'confirm_delete' => 'Delete this AdSense placement?',
+    'placement_saved' => 'The AdSense placement was saved.',
+    'placement_save_failed' => 'The placement could not be saved. Check the name, slot ID and duplicate placement names.',
+    'placement_deleted' => 'The AdSense placement was deleted.',
+    'placement_delete_failed' => 'The AdSense placement could not be deleted.',
+    'invalid_token' => 'The request could not be validated. Reload the page and try again.',
+    'format_auto' => 'Auto',
+    'format_rectangle' => 'Rectangle',
+    'format_horizontal' => 'Horizontal',
+    'format_vertical' => 'Vertical',
+    'legacy_title' => 'Historical autotag compatibility',
+    'legacy_help' => 'AdSense only exposes compatible legacy aliases when legacy aliases are enabled and no other active plugin already owns the same autotag name.',
+    'autotag' => 'Autotag',
+    'mapped_placement' => 'Mapped placement',
+    'status' => 'Status',
+    'owned_by_plugin' => 'Owned by active plugin: %s',
+    'aliases_disabled' => 'Legacy aliases disabled',
+    'alias_available' => 'Available to AdSense',
+    'alias_unavailable' => 'Unavailable',
+    'external_unchanged' => 'External — never taken over by AdSense',
+    'usage_title' => 'Usage',
+    'usage_help' => 'Example: create a placement named article-middle, then use [ad:article-middle] in compatible Geeklog content.'
 );
 
 $LANG_configsections['adsense'] = array(
@@ -16,8 +52,12 @@ $LANG_confignames['adsense'] = array(
     'enabled' => 'Enable AdSense serving?',
     'serving_mode' => 'Serving mode',
     'publisher_id' => 'Publisher ID',
+    'debug_mode' => 'Administrator placement preview?',
     'legacy_aliases' => 'Enable compatible legacy autotag aliases?',
-    'debug_mode' => 'Administrator placement debug mode?'
+    'legacy_adsense_placement' => '[adsense] mapped placement',
+    'legacy_inarticle_placement' => '[inarticle] mapped placement',
+    'legacy_infeed_placement' => '[infeed] mapped placement',
+    'legacy_leaderboard_placement' => '[leaderboard] mapped placement'
 );
 
 $LANG_configsubgroups['adsense'] = array(
@@ -29,7 +69,8 @@ $LANG_tab['adsense'] = array(
 );
 
 $LANG_fs['adsense'] = array(
-    'fs_main' => 'Ad serving'
+    'fs_main' => 'Ad serving',
+    'fs_legacy' => 'Historical autotags'
 );
 
 $LANG_configselects['adsense'] = array(
