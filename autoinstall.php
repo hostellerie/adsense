@@ -31,13 +31,15 @@ function plugin_autoinstall_adsense($pi_name)
             $piName . '.admin' => array($adminGroup),
             'config.' . $piName . '.tab_main' => array($adminGroup)
         ),
-        'tables' => array()
+        'tables' => array('adsense_placements')
     );
 }
 
 function plugin_load_configuration_adsense($pi_name)
 {
     global $_CONF;
+
+    require_once $_CONF['path_system'] . 'classes/config.class.php';
 
     $defaults = $_CONF['path'] . 'plugins/' . $pi_name . '/install_defaults.php';
 
@@ -53,13 +55,9 @@ function plugin_load_configuration_adsense($pi_name)
 
 function plugin_compatible_with_this_version_adsense($pi_name)
 {
-    global $_CONF;
+    global $_CONF, $_DB_dbms;
 
-    if (!isset($_CONF['version'])) {
-        return false;
-    }
-
-    if (version_compare($_CONF['version'], '2.1.1', '<')) {
+    if (defined('VERSION') && version_compare(VERSION, '2.1.1', '<')) {
         return false;
     }
 
@@ -67,7 +65,9 @@ function plugin_compatible_with_this_version_adsense($pi_name)
         return false;
     }
 
-    return class_exists('config');
+    $dbFile = $_CONF['path'] . 'plugins/' . $pi_name . '/sql/' . $_DB_dbms . '_install.php';
+
+    return class_exists('config') && file_exists($dbFile);
 }
 
 function plugin_postinstall_adsense($pi_name)
