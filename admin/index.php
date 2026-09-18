@@ -112,12 +112,15 @@ $content .= '<thead><tr>'
     . '</tr></thead><tbody>';
 
 foreach ($placements as $placement) {
-    $content .= '<tr><form method="post" action="">';
-    $content .= '<td><input type="text" name="name" maxlength="64" value="'
+    $formId = 'adsense-placement-' . (int) $placement['placement_id'];
+    $formAttr = ' form="' . htmlspecialchars($formId, ENT_QUOTES, 'UTF-8') . '"';
+
+    $content .= '<tr>';
+    $content .= '<td><input' . $formAttr . ' type="text" name="name" maxlength="64" value="'
         . htmlspecialchars($placement['name'], ENT_QUOTES, 'UTF-8') . '"></td>';
-    $content .= '<td><input type="text" name="slot_id" maxlength="32" value="'
+    $content .= '<td><input' . $formAttr . ' type="text" name="slot_id" maxlength="32" value="'
         . htmlspecialchars($placement['slot_id'], ENT_QUOTES, 'UTF-8') . '"></td>';
-    $content .= '<td><select name="format">';
+    $content .= '<td><select' . $formAttr . ' name="format">';
 
     foreach (ADSENSE_allowedFormats() as $format) {
         $content .= '<option value="' . htmlspecialchars($format, ENT_QUOTES, 'UTF-8') . '"'
@@ -127,11 +130,12 @@ foreach ($placements as $placement) {
     }
 
     $content .= '</select></td>';
-    $content .= '<td><input type="checkbox" name="responsive" value="1"'
+    $content .= '<td><input' . $formAttr . ' type="checkbox" name="responsive" value="1"'
         . (!empty($placement['responsive']) ? ' checked' : '') . '></td>';
-    $content .= '<td><input type="checkbox" name="enabled" value="1"'
+    $content .= '<td><input' . $formAttr . ' type="checkbox" name="enabled" value="1"'
         . (!empty($placement['enabled']) ? ' checked' : '') . '></td>';
-    $content .= '<td class="adsense-admin-actions">'
+    $content .= '<td class="adsense-admin-actions"><form id="'
+        . htmlspecialchars($formId, ENT_QUOTES, 'UTF-8') . '" method="post" action="">'
         . '<input type="hidden" name="placement_id" value="' . (int) $placement['placement_id'] . '">'
         . '<input type="hidden" name="' . CSRF_TOKEN . '" value="'
         . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">'
@@ -142,14 +146,16 @@ foreach ($placements as $placement) {
         . htmlspecialchars(json_encode($LANG_ADSENSE['confirm_delete']), ENT_QUOTES, 'UTF-8')
         . ');">'
         . htmlspecialchars($LANG_ADSENSE['delete'], ENT_QUOTES, 'UTF-8') . '</button>'
-        . '</td>';
-    $content .= '</form></tr>';
+        . '</form></td>';
+    $content .= '</tr>';
 }
 
-$content .= '<tr><form method="post" action="">';
-$content .= '<td><input type="text" name="name" maxlength="64" placeholder="article-middle"></td>';
-$content .= '<td><input type="text" name="slot_id" maxlength="32" placeholder="1234567890"></td>';
-$content .= '<td><select name="format">';
+$newFormId = 'adsense-placement-new';
+$newFormAttr = ' form="' . $newFormId . '"';
+$content .= '<tr>';
+$content .= '<td><input' . $newFormAttr . ' type="text" name="name" maxlength="64" placeholder="article-middle"></td>';
+$content .= '<td><input' . $newFormAttr . ' type="text" name="slot_id" maxlength="32" placeholder="1234567890"></td>';
+$content .= '<td><select' . $newFormAttr . ' name="format">';
 
 foreach (ADSENSE_allowedFormats() as $format) {
     $content .= '<option value="' . htmlspecialchars($format, ENT_QUOTES, 'UTF-8') . '">'
@@ -158,16 +164,16 @@ foreach (ADSENSE_allowedFormats() as $format) {
 }
 
 $content .= '</select></td>';
-$content .= '<td><input type="checkbox" name="responsive" value="1" checked></td>';
-$content .= '<td><input type="checkbox" name="enabled" value="1" checked></td>';
-$content .= '<td class="adsense-admin-actions">'
+$content .= '<td><input' . $newFormAttr . ' type="checkbox" name="responsive" value="1" checked></td>';
+$content .= '<td><input' . $newFormAttr . ' type="checkbox" name="enabled" value="1" checked></td>';
+$content .= '<td class="adsense-admin-actions"><form id="' . $newFormId . '" method="post" action="">'
     . '<input type="hidden" name="placement_id" value="0">'
     . '<input type="hidden" name="' . CSRF_TOKEN . '" value="'
     . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">'
     . '<button type="submit" name="save_placement" value="1">'
     . htmlspecialchars($LANG_ADSENSE['add'], ENT_QUOTES, 'UTF-8') . '</button>'
-    . '</td>';
-$content .= '</form></tr>';
+    . '</form></td>';
+$content .= '</tr>';
 
 $content .= '</tbody></table></div>';
 
