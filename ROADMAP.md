@@ -85,7 +85,7 @@ Use existing Plugin APIs instead of inventing equivalent mechanisms.
 - [ ] Support the Geeklog autotag discovery/permission/parse modes required by the supported versions.
 - [ ] Use contextual autotag parameters such as content type/id when available, without requiring them.
 - [x] Use `plugin_getadminoption_adsense()` and/or `plugin_cclabel_adsense()` for administration entry points as appropriate.
-- [ ] Use `plugin_getconfigtooltip_adsense()` for configuration help instead of custom tooltip JavaScript.
+- [x] Use `plugin_getconfigtooltip_adsense()` for configuration help instead of custom tooltip JavaScript.
 - [ ] Use `plugin_migrate_adsense()` only if URL/path changes require site-specific AdSense state updates.
 - [ ] Use `plugin_configchange_adsense()` only where reacting to configuration changes is actually necessary.
 - [ ] Do not implement unrelated Plugin APIs merely for completeness.
@@ -101,7 +101,7 @@ Ordinary plugin configuration should use Geeklog's Configuration API.
 - [x] Define matching `$LANG_configsections`, `$LANG_confignames`, `$LANG_configsubgroups`, `$LANG_tab`, and `$LANG_fs` entries.
 - [x] Define `$LANG_configselects` entries for every selection-backed option.
 - [x] Expose readable labels for modes instead of raw `0/1/2/3` choices.
-- [ ] Add concise tooltips for technically significant settings such as serving mode, legacy aliases, consent behavior, debug mode, and compatibility options.
+- [x] Add concise tooltips for technically significant settings such as serving mode, legacy aliases, consent behavior, debug mode, and compatibility options.
 - [x] Retrieve plugin configuration through Geeklog's configuration system rather than querying `conf_values` directly on page requests.
 - [x] Protect configuration reads with `isset()`-style PHP 5.6-safe fallbacks.
 - [ ] Test a fresh configuration independently from upgrade/migration paths.
@@ -252,13 +252,13 @@ AdSense 1.0 should avoid persistent files unless they are genuinely necessary.
 
 `ads.txt` is a domain-root resource and must not be confused with ordinary plugin persistent storage.
 
-- [ ] Add an `ads.txt` status page.
+- [x] Add an `ads.txt` status page.
 - [ ] Check whether the active site's root `ads.txt` URL is reachable.
-- [ ] Check for the configured Google publisher ID.
-- [ ] Display the expected Google line when missing.
-- [ ] Prefer diagnostics and guided configuration in 1.0 rather than automatic file modification.
-- [ ] Do not assume the plugin directory or `path_data` maps to the domain-root `ads.txt`.
-- [ ] Ensure multisite/domain-aware validation uses the active site's URL.
+- [x] Check for the configured Google publisher ID.
+- [x] Display the expected Google line when missing.
+- [x] Prefer diagnostics and guided configuration in 1.0 rather than automatic file modification.
+- [x] Do not assume the plugin directory or `path_data` maps to the domain-root `ads.txt`.
+- [x] Ensure multisite/domain-aware validation uses the active site's URL.
 - [ ] If automatic management is ever added, design it as an explicit protected action with ownership/backup/rollback checks rather than a normal page-load side effect.
 
 ### Exclusions
